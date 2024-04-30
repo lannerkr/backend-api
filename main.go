@@ -12,6 +12,8 @@ import (
 	"github.com/go-chi/httplog/v2"
 )
 
+// version 3.0.2 20240429
+
 var logger *httplog.Logger
 var fpLog *os.File
 
