@@ -1,0 +1,12 @@
+FROM ubuntu:latest
+
+MAINTAINER "lannerkr@gmail.com"
+
+COPY ./backend-api-v1.2.2 /usr/local/bin
+COPY ./startup.sh /usr/local/bin
+
+WORKDIR /mnt/src
+
+ENTRYPOINT [ "startup.sh" ]
+
+LABEL description="This is API manager for pulsesecure connect secure and policy secure"
