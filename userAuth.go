@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var tokenAuth *jwtauth.JWTAuth = jwtauth.New("HS256", []byte("!DE*DD&@#JUsecret"), nil)
@@ -303,4 +305,122 @@ func delAuthUserDB(userid string) error {
 
 	//log.Println(users)
 	return nil
+}
+
+func fileManagerHandler(w http.ResponseWriter, r *http.Request) {
+
+	rescode, err := getfileInfoDB()
+
+	if err != nil {
+		respondwithJSON(w, 200, err)
+	} else {
+		fmt.Println(rescode)
+		respondwithJSON(w, 200, rescode)
+	}
+
+	//render.JSON(w, r, rescode)
+}
+
+func fileInfoUploadHandler(w http.ResponseWriter, r *http.Request) {
+
+	var files []FileInfos
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&files)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+	//log.Println("fileInfoupload :", files)
+
+	dbconnCheck(dbconn)
+	coll := dbconn.Database("usertableDB").Collection("fileInfo")
+	opts := options.Update().SetUpsert(true)
+	for _, file := range files {
+		filter := bson.D{{Key: "fileName", Value: file.FileName}}
+		update := bson.D{{Key: "$set", Value: bson.M{"fileName": file.FileName, "description": file.Description}}}
+		if _, err := coll.UpdateOne(context.TODO(), filter, update, opts); err != nil {
+			respondwithJSON(w, 200, err)
+		}
+	}
+
+	respondwithJSON(w, 200, "200")
+}
+
+type FileInfos struct {
+	FileName    string `json:"fileName" bson:"fileName"`
+	Description string `json:"description" bson:"description"`
+	ButtonName  string `json:"buttonName" bson:"buttonName"`
+}
+
+func getfileInfoDB() ([]FileInfos, error) {
+	dbconnCheck(dbconn)
+	coll := dbconn.Database("usertableDB").Collection("fileInfo")
+	//putfileInfoDB(coll)
+
+	var fileinfo []FileInfos
+	filter := bson.D{}
+
+	u, err := coll.Find(context.TODO(), filter)
+	if err != nil {
+		log.Println("getfileInfoDB Find Error", err)
+		return nil, err
+	}
+
+	if err = u.All(context.TODO(), &fileinfo); err != nil {
+		log.Println("getfileInfoDB Bind Error", err)
+		return nil, err
+	}
+
+	return fileinfo, nil
+}
+
+func putfileInfoDB(coll *mongo.Collection) {
+	// dbconnCheck(dbconn)
+	// coll := dbconn.Database("usertableDB").Collection("fileInfo")
+
+	filelist := getFileList()
+
+	opts := options.Update().SetUpsert(true)
+	for _, filename := range filelist {
+		filter := bson.D{{Key: "fileName", Value: filename}}
+		update := bson.D{{Key: "$set", Value: bson.M{"fileName": filename}}}
+		if _, err := coll.UpdateOne(context.TODO(), filter, update, opts); err != nil {
+			log.Println(err)
+		}
+	}
+
+}
+
+func getFileList() []string {
+	var filelist []string
+	targetDir := "/mnt/download"
+	files, err := os.ReadDir(targetDir)
+	if err != nil {
+		return nil
+	}
+	for _, file := range files {
+		// 파일명
+		fmt.Println(file.Name())
+		// 파일의 절대경로
+		//fmt.Println(fmt.Sprintf("%v/%v", targetDir, file.Name()))
+
+		filelist = append(filelist, file.Name())
+	}
+
+	return filelist
+}
+
+func fileDeleteHandler(w http.ResponseWriter, r *http.Request) {
+
+	filename := chi.URLParam(r, "delfile")
+
+	dbconnCheck(dbconn)
+	coll := dbconn.Database("usertableDB").Collection("fileInfo")
+	filter := bson.D{{Key: "fileName", Value: filename}}
+	if _, err := coll.DeleteOne(context.TODO(), filter); err != nil {
+		log.Println("file delete error :", err)
+		respondwithJSON(w, 200, err)
+	}
+
+	respondwithJSON(w, 200, "200")
 }

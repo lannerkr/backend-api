@@ -11,46 +11,41 @@ import (
 	"strings"
 )
 
-func ppsReq(realm, method, url string, buff io.Reader) (resp *http.Response, err error) {
-	ppsUri := configuration.PPSUri
-	ppsApiKey := configuration.PPSApiKey
-	var auth string
-
-	switch realm {
-	case "store":
-		auth = configuration.PPSAuthStore
-	case "partner":
-		auth = configuration.PPSAuthPartner
-	case "emp":
-		auth = configuration.PPSAuthEmp
-	case "EMP-GOTP":
-		auth = configuration.PPSAuthEmp
-	default:
-		err := fmt.Errorf("realm %v is not available", realm)
-		return nil, err
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-	apikey := ppsApiKey
-	pUri := ppsUri + "/api/v1/configuration/authentication/auth-servers/auth-server/" + auth + url
-
-	req, err := http.NewRequest(method, pUri, buff)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(apikey, "")
-
-	resp, err = client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
+// func ppsReq(realm, method, url string, buff io.Reader) (resp *http.Response, err error) {
+// 	ppsUri := configuration.PPSUri
+// 	ppsApiKey := configuration.PPSApiKey
+// 	var auth string
+// 	switch realm {
+// 	case "store":
+// 		auth = configuration.PPSAuthStore
+// 	case "partner":
+// 		auth = configuration.PPSAuthPartner
+// 	case "emp":
+// 		auth = configuration.PPSAuthEmp
+// 	case "EMP-GOTP":
+// 		auth = configuration.PPSAuthEmp
+// 	default:
+// 		err := fmt.Errorf("realm %v is not available", realm)
+// 		return nil, err
+// 	}
+// 	tr := &http.Transport{
+// 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+// 	}
+// 	client := &http.Client{Transport: tr}
+// 	apikey := ppsApiKey
+// 	pUri := ppsUri + "/api/v1/configuration/authentication/auth-servers/auth-server/" + auth + url
+// 	req, err := http.NewRequest(method, pUri, buff)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.SetBasicAuth(apikey, "")
+// 	resp, err = client.Do(req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp, nil
+// }
 
 func ppsSysReq(method, url string, buff io.Reader) (resp *http.Response, err error) {
 	ppsUri := configuration.PPSUri

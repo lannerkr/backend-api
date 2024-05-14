@@ -21,6 +21,7 @@ func main() {
 
 	conf := os.Args[1]
 	sport, cert, certkey, logpath := Config(conf)
+	//_, _, _, logpath := Config(conf)
 
 	var err error
 	fpLog, err = os.OpenFile(logpath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -28,7 +29,6 @@ func main() {
 		panic(err)
 	}
 	defer fpLog.Close()
-	//logger = log.New(fpLog, "", log.LstdFlags|log.Lshortfile)
 	log.SetOutput(fpLog)
 
 	dbconn = mongoConnect()
@@ -56,12 +56,10 @@ func main() {
 	})
 
 	router := chi.NewRouter()
-	//router.Use(middleware.Logger)
-	//router.Use(httplog.RequestLogger(logger))
 	routes(router)
 
 	//http.ListenAndServe(":"+configuration.ServerPort, router)
 	if err := http.ListenAndServeTLS(":"+sport, cert, certkey, router); err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatal("ListenAndServeTLS: ", err)
 	}
 }

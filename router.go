@@ -41,6 +41,9 @@ func routes(router *chi.Mux) {
 		// isAdmin check need
 		router.Post("/login/users/register", putUserHandler)
 		router.Delete("/login/users/{userid}", delUserHandler)
+		router.Get("/login/files", fileManagerHandler)
+		router.Post("/login/files", fileInfoUploadHandler)
+		router.Delete("/login/files/del/{delfile}", fileDeleteHandler)
 
 		// different athority for admin need
 		router.Get("/login/users/{userid}", getUsersHandler)

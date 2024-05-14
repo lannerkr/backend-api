@@ -44,3 +44,8 @@ public/themes/nano/
 *.key
 *.cer
 
+api-manager.log
+backend-api
+docker/backend-api-v3.0.2.1
+docker/backend-api-v3.1
+backend-api
