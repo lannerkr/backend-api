@@ -13,6 +13,7 @@ import (
 )
 
 // version 3.0.2 20240429
+// version 3.1 20240514
 
 var logger *httplog.Logger
 var fpLog *os.File
